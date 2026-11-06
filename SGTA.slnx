@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="sgta-backend.csproj" />
+  <Project Path="SGTA.Application/SGTA.Application.csproj" />
+  <Project Path="SGTA.Domain/SGTA.Domain.csproj" />
+  <Project Path="SGTA.Infrastructure/SGTA.Infrastructure.csproj" />
+</Solution>
