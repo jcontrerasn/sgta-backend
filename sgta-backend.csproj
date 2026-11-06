@@ -8,19 +8,39 @@
     <RootNamespace>sgta_backend</RootNamespace>
   </PropertyGroup>
 
+  <!-- Dependencias NuGet -->
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.14" />
+  </ItemGroup>
+
+  <!-- Referencias de Clean Architecture -->
+  <ItemGroup>
+    <ProjectReference Include="SGTA.Application\SGTA.Application.csproj" />
+    <ProjectReference Include="SGTA.Infrastructure\SGTA.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <!-- Evitar compilar directamente las otras capas -->
+  <ItemGroup>
+    <Compile Remove="SGTA.Application\**\*.cs" />
+    <Compile Remove="SGTA.Domain\**\*.cs" />
+    <Compile Remove="SGTA.Infrastructure\**\*.cs" />
+
+    <Content Remove="SGTA.Application\**" />
+    <Content Remove="SGTA.Domain\**" />
+    <Content Remove="SGTA.Infrastructure\**" />
+
+    <None Remove="SGTA.Application\**" />
+    <None Remove="SGTA.Domain\**" />
+    <None Remove="SGTA.Infrastructure\**" />
   </ItemGroup>
 
   <!-- Compilar React e incluirlo en la publicación -->
   <Target Name="PublishReact"
           BeforeTargets="ComputeFilesToPublish">
 
-    <!-- Ejecutar compilación de Vite -->
     <Exec WorkingDirectory="../sgta-frontend"
           Command="npm run build" />
 
-    <!-- Incorporar archivos generados por React -->
     <ItemGroup>
       <ReactDist Include="../sgta-frontend/dist/**/*" />
 
