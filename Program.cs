@@ -3,23 +3,32 @@ using Microsoft.EntityFrameworkCore;
 using SGTA.Application.Exceptions;
 using SGTA.Infrastructure.Persistence;
 using SGTA.Application.Features.Roles;
+using SGTA.Application.Features.Usuarios;
 using SGTA.Application.Interfaces;
 using SGTA.Infrastructure.Repositories;
-using sgta_backend.Common.Configuration;
 using sgta_backend.Common.Responses;
-
-DotEnvLoader.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
+var primaryConnectionString = builder.Configuration
+    .GetConnectionString("SgtaConnection");
+
+if (string.IsNullOrWhiteSpace(primaryConnectionString))
+{
+    throw new InvalidOperationException(
+        "No se encontró ConnectionStrings:SgtaConnection en la configuración.");
+}
+
 builder.Services.AddDbContext<SgtaDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("SgtaConnection")
+        primaryConnectionString
     )
 );
 
 builder.Services.AddScoped<IRolRepository, RolRepository>();
 builder.Services.AddScoped<RolService>();
+builder.Services.AddScoped<IUsuarioExternoRepository, UsuarioExternoRepository>();
+builder.Services.AddScoped<UsuarioService>();
 
 // Servicios del backend
 builder.Services.AddControllers();
@@ -85,8 +94,8 @@ app.UseExceptionHandler(errorApp =>
 });
 
 // Archivos estáticos de React
-// app.UseDefaultFiles();
-// app.UseStaticFiles();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 // Endpoints de la API
 app.MapControllers();

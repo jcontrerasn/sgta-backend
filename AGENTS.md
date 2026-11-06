@@ -268,6 +268,30 @@ Antes de insertar se debe validar la existencia del registro en el repositorio. 
 - Los conflictos y validaciones se registran como advertencias breves.
 - Los errores inesperados se registran con stack trace para diagnostico.
 
+## Integracion con bases externas sin ORM
+
+Cuando una base de datos externa se consume mediante procedimientos almacenados, no se debe agregar su `DbContext` al proyecto principal.
+
+- Crear un repositorio en `SGTA.Infrastructure/Repositories` usando `Microsoft.Data.SqlClient` y ADO.NET.
+- Configurar el repositorio con `ConnectionStrings__SgtaConnectionExternal`.
+- Usar `CommandType.StoredProcedure` y declarar explicitamente los parametros del procedimiento.
+- Leer el resultado con `SqlDataReader` y mapearlo a una entidad o modelo de dominio.
+- El servicio debe convertir el resultado a un `Response DTO`.
+- Registrar el repositorio y servicio en `Program.cs`.
+- El controlador debe devolver `ApiResponse<T>` y no exponer objetos de ADO.NET.
+- Usar `CancellationToken`, `CommandTimeout` y cerrar conexiones mediante `await using`.
+
+Ejemplo de flujo:
+
+```text
+GET /api/usuarios/cuenta/{cuenta}
+    -> UsuariosController
+    -> UsuarioService
+    -> IUsuarioExternoRepository
+    -> pr_sm_BuscarUsuarioXCuenta(Pcuenta_n)
+    -> UsuarioCuentaResponse
+```
+
 ## Configuracion sensible
 
 - Las credenciales locales deben mantenerse en `.env`, nunca en `appsettings*.json` ni en el codigo.
