@@ -1,5 +1,13 @@
+using Microsoft.EntityFrameworkCore;
+using SGTA.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<SgtaDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("SgtaConnection")
+    )
+);
 
 // Servicios del backend
 builder.Services.AddControllers();
@@ -14,13 +22,13 @@ if (app.Environment.IsDevelopment())
 }
 
 // Archivos estáticos de React
-app.UseDefaultFiles();
-app.UseStaticFiles();
+// app.UseDefaultFiles();
+// app.UseStaticFiles();
 
 // Endpoints de la API
 app.MapControllers();
 
 // Rutas del frontend React
-app.MapFallbackToFile("index.html");
+// app.MapFallbackToFile("index.html");
 
 app.Run();
