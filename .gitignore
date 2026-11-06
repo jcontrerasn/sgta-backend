@@ -48,6 +48,7 @@ pnpm-debug.log*
 !.env.example
 
 **/appsettings.Production.json
+**/appsettings.Development.json
 **/appsettings.Local.json
 
 # Certificados y claves

@@ -19,6 +19,13 @@
     <ProjectReference Include="SGTA.Infrastructure\SGTA.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="appsettings.Production.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
   <!-- Evitar compilar directamente las otras capas -->
   <ItemGroup>
     <Compile Remove="SGTA.Application\**\*.cs" />
@@ -33,27 +40,5 @@
     <None Remove="SGTA.Domain\**" />
     <None Remove="SGTA.Infrastructure\**" />
   </ItemGroup>
-
-  <!-- Compilar React e incluirlo en la publicación -->
-  <Target Name="PublishReact"
-          BeforeTargets="ComputeFilesToPublish">
-
-    <Exec WorkingDirectory="../sgta-frontend"
-          Command="npm run build" />
-
-    <ItemGroup>
-      <ReactDist Include="../sgta-frontend/dist/**/*" />
-
-      <ResolvedFileToPublish
-        Include="@(ReactDist->'%(FullPath)')">
-
-        <RelativePath>wwwroot/%(ReactDist.RecursiveDir)%(ReactDist.Filename)%(ReactDist.Extension)</RelativePath>
-
-        <CopyToPublishDirectory>Always</CopyToPublishDirectory>
-
-      </ResolvedFileToPublish>
-    </ItemGroup>
-
-  </Target>
 
 </Project>
