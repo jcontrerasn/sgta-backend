@@ -268,6 +268,15 @@ Antes de insertar se debe validar la existencia del registro en el repositorio. 
 - Los conflictos y validaciones se registran como advertencias breves.
 - Los errores inesperados se registran con stack trace para diagnostico.
 
+## Configuracion sensible
+
+- Las credenciales locales deben mantenerse en `.env`, nunca en `appsettings*.json` ni en el codigo.
+- `.env` esta excluido de Git y no debe agregarse con `git add -f`.
+- Mantener `.env.example` actualizado con nombres de variables y valores ficticios.
+- La conexion usa la variable `ConnectionStrings__SgtaConnection`, que se transforma en `ConnectionStrings:SgtaConnection` dentro de la configuracion de .NET.
+- `DotEnvLoader` carga `.env` al iniciar la API; las variables de entorno externas tienen prioridad sobre el archivo.
+- En produccion se deben usar variables de entorno del servidor o un gestor de secretos.
+
 ## Reglas importantes
 
 - Usar `async/await` y propagar siempre el `CancellationToken`.
