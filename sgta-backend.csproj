@@ -1,0 +1,39 @@
+
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>sgta_backend</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.14" />
+  </ItemGroup>
+
+  <!-- Compilar React e incluirlo en la publicación -->
+  <Target Name="PublishReact"
+          BeforeTargets="ComputeFilesToPublish">
+
+    <!-- Ejecutar compilación de Vite -->
+    <Exec WorkingDirectory="../sgta-frontend"
+          Command="npm run build" />
+
+    <!-- Incorporar archivos generados por React -->
+    <ItemGroup>
+      <ReactDist Include="../sgta-frontend/dist/**/*" />
+
+      <ResolvedFileToPublish
+        Include="@(ReactDist->'%(FullPath)')">
+
+        <RelativePath>wwwroot/%(ReactDist.RecursiveDir)%(ReactDist.Filename)%(ReactDist.Extension)</RelativePath>
+
+        <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+
+      </ResolvedFileToPublish>
+    </ItemGroup>
+
+  </Target>
+
+</Project>

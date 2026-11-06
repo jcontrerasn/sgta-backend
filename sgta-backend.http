@@ -1,0 +1,6 @@
+@sgta_backend_HostAddress = http://localhost:5124
+
+GET {{sgta_backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
