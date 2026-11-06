@@ -5,7 +5,10 @@ using SGTA.Infrastructure.Persistence;
 using SGTA.Application.Features.Roles;
 using SGTA.Application.Interfaces;
 using SGTA.Infrastructure.Repositories;
+using sgta_backend.Common.Configuration;
 using sgta_backend.Common.Responses;
+
+DotEnvLoader.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
