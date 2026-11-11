@@ -8,6 +8,9 @@ namespace sgta_backend.Controllers;
 
 [ApiController]
 [Route("api/roles")]
+/// <summary>
+/// Operaciones para consultar y crear roles.
+/// </summary>
 public class RolesController : ControllerBase
 {
     private readonly RolService _rolService;
@@ -18,6 +21,13 @@ public class RolesController : ControllerBase
     }
 
     // GET /api/roles
+    /// <summary>
+    /// Obtiene todos los roles registrados.
+    /// </summary>
+    /// <response code="200">Lista de roles obtenida correctamente.</response>
+    /// <response code="500">Ocurrió un error interno.</response>
+    [ProducesResponseType(typeof(ApiResponse<List<RolResponse>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     [HttpGet]
     public async Task<IActionResult> ObtenerRoles(
         CancellationToken cancellationToken)
@@ -34,6 +44,18 @@ public class RolesController : ControllerBase
     }
 
     // POST /api/roles
+    /// <summary>
+    /// Crea un nuevo rol.
+    /// </summary>
+    /// <param name="request">Datos del rol que se desea crear.</param>
+    /// <response code="201">Rol creado correctamente.</response>
+    /// <response code="400">Los datos enviados no son válidos.</response>
+    /// <response code="409">Ya existe un rol con el mismo nombre.</response>
+    /// <response code="500">Ocurrió un error interno.</response>
+    [ProducesResponseType(typeof(ApiResponse<RolResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     [HttpPost]
     public async Task<IActionResult> CrearRol(
         [FromBody] CrearRolRequest request,

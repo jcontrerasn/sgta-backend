@@ -202,6 +202,7 @@ public class ProductosController : ControllerBase
 - `DELETE`: `204 NoContent`.
 - Datos inválidos: `400 BadRequest`. `[ApiController]` debe encargarse de las validaciones de DataAnnotations.
 - No devolver entidades EF Core directamente ni incluir mensajes de excepción internos en producción.
+- Cada endpoint nuevo debe documentarse en Swagger antes de considerarse terminado, incluyendo resumen, parámetros, códigos de respuesta y modelos `Request`/`Response` cuando correspondan.
 
 ## Formato estandar de respuesta
 
@@ -268,12 +269,12 @@ Antes de insertar se debe validar la existencia del registro en el repositorio. 
 - Los conflictos y validaciones se registran como advertencias breves.
 - Los errores inesperados se registran con stack trace para diagnostico.
 
-## Integracion con bases externas sin ORM
+## Integracion con procedimientos almacenados en BDSERVER01
 
-Cuando una base de datos externa se consume mediante procedimientos almacenados, no se debe agregar su `DbContext` al proyecto principal.
+Los procedimientos almacenados de usuarios pertenecen a BDSERVER01 y se consumen sin ORM.
 
 - Crear un repositorio en `SGTA.Infrastructure/Repositories` usando `Microsoft.Data.SqlClient` y ADO.NET.
-- Configurar el repositorio con `ConnectionStrings__SgtaConnectionExternal`.
+- Configurar el repositorio con `ConnectionStrings__SgtaConnection`; todos los flujos usan la conexión única de BDSERVER01.
 - Usar `CommandType.StoredProcedure` y declarar explicitamente los parametros del procedimiento.
 - Leer el resultado con `SqlDataReader` y mapearlo a una entidad o modelo de dominio.
 - El servicio debe convertir el resultado a un `Response DTO`.
@@ -287,19 +288,25 @@ Ejemplo de flujo:
 GET /api/usuarios/cuenta/{cuenta}
     -> UsuariosController
     -> UsuarioService
-    -> IUsuarioExternoRepository
+    -> IUsuarioRepository
     -> pr_sm_BuscarUsuarioXCuenta(Pcuenta_n)
     -> UsuarioCuentaResponse
+
+POST /api/usuarios/buscar-por-filtro
+    -> UsuariosController
+    -> UsuarioService
+    -> IUsuarioRepository
+    -> pr_sm_ListarUsuarioXFiltro(Pfiltro_)
+    -> List<UsuarioCuentaResponse>
 ```
 
 ## Configuracion sensible
 
-- Las credenciales locales deben mantenerse en `.env`, nunca en `appsettings*.json` ni en el codigo.
-- `.env` esta excluido de Git y no debe agregarse con `git add -f`.
-- Mantener `.env.example` actualizado con nombres de variables y valores ficticios.
-- La conexion usa la variable `ConnectionStrings__SgtaConnection`, que se transforma en `ConnectionStrings:SgtaConnection` dentro de la configuracion de .NET.
-- `DotEnvLoader` carga `.env` al iniciar la API; las variables de entorno externas tienen prioridad sobre el archivo.
-- En produccion se deben usar variables de entorno del servidor o un gestor de secretos.
+- Las conexiones se configuran en `appsettings.Development.json` y `appsettings.Production.json`.
+- Todos los flujos usan `ConnectionStrings:SgtaConnection` hacia BDSERVER01.
+- No usar `ConnectionStringsExternal`, `.env` ni `DotEnvLoader`.
+- `appsettings.Production.json` esta excluido de Git y debe acompañar al artefacto publicado.
+- No exponer credenciales en respuestas HTTP, logs ni documentacion de ejemplo.
 
 ## Reglas importantes
 
@@ -310,7 +317,7 @@ GET /api/usuarios/cuenta/{cuenta}
 - Mantener los `Request DTO` y `Response DTO` dentro de `Features/{Entidad}/DTOs`.
 - Preferir `Response DTO` en todos los endpoints para evitar acoplar la API con la base de datos.
 - No guardar contraseñas ni cadenas de conexión sensibles en el repositorio.
-- Usar `Server=tcp:127.0.0.1,1433` en desarrollo cuando SQL Server esté publicado en ese puerto.
+- Usar `Server=BDSERVER01` en todos los entornos; no volver a utilizar la conexión local `tcp:127.0.0.1,1433`.
 
 ## Ejemplo del módulo `Roles`
 

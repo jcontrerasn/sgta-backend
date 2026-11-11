@@ -1,7 +1,4 @@
-USE SgtaDB;
-GO
-
-CREATE TABLE dbo.TareaAnotaciones (
+CREATE TABLE dbo.TRACKIT_TareaAnotaciones (
     IdAnotacion INT IDENTITY(1,1) PRIMARY KEY,
 
     IdTarea INT NOT NULL,
@@ -13,21 +10,13 @@ CREATE TABLE dbo.TareaAnotaciones (
     EsComentarioCierre BIT NOT NULL
         DEFAULT 0,
 
+	Adjuntos NVARCHAR(MAX) NULL,
+
     FechaCreacion DATETIME2(0) NOT NULL
-        DEFAULT CONVERT(
-            DATETIME2(0),
-            SYSUTCDATETIME() AT TIME ZONE 'UTC'
-                AT TIME ZONE 'SA Pacific Standard Time'
-        ),
+        DEFAULT GETDATE(),
 
     CONSTRAINT FK_TareaAnotaciones_Tareas
         FOREIGN KEY (IdTarea)
-        REFERENCES dbo.Tareas(IdTarea),
+        REFERENCES dbo.TRACKIT_Tareas(IdTarea),
 
-    CONSTRAINT CK_TareaAnotaciones_Comentario
-        CHECK (LEN(TRIM(Comentario)) > 0),
-
-    CONSTRAINT CK_TareaAnotaciones_UsuarioAutor
-        CHECK (LEN(TRIM(UsuarioAutor)) > 0)
 );
-GO

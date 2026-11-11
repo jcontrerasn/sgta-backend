@@ -7,6 +7,9 @@ namespace sgta_backend.Controllers;
 
 [ApiController]
 [Route("api/database")]
+/// <summary>
+/// Endpoints para verificar la conectividad con la base de datos principal.
+/// </summary>
 public class DatabaseController : ControllerBase
 {
     private readonly SgtaDbContext _context;
@@ -16,6 +19,13 @@ public class DatabaseController : ControllerBase
         _context = context;
     }
 
+    /// <summary>
+    /// Abre y cierra una conexión contra SQL Server para comprobar su disponibilidad.
+    /// </summary>
+    /// <response code="200">La conexión se estableció correctamente.</response>
+    /// <response code="503">SQL Server no está disponible.</response>
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     [HttpGet("test")]
     public async Task<IActionResult> Test()
     {
