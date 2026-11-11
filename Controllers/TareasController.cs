@@ -144,6 +144,46 @@ public class TareasController : ControllerBase
         });
     }
 
+    // GET /api/tareas/{idTarea}/historial
+    /// <summary>
+    /// Obtiene todo el historial de cambios de una tarea.
+    /// </summary>
+    /// <param name="idTarea">Identificador de la tarea.</param>
+    /// <param name="cancellationToken">Token para cancelar la operación.</param>
+    /// <response code="200">Historial obtenido correctamente.</response>
+    /// <response code="400">El identificador de la tarea no es válido.</response>
+    /// <response code="404">No se encontró la tarea indicada.</response>
+    /// <response code="500">Ocurrió un error interno.</response>
+    [ProducesResponseType(typeof(ApiResponse<List<HistorialTareaResponse>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+    [HttpGet("{idTarea:int}/historial")]
+    public async Task<IActionResult> ObtenerHistorial(
+        [FromRoute] int idTarea,
+        CancellationToken cancellationToken)
+    {
+        var historial = await _tareaService.ObtenerHistorialAsync(
+            idTarea, cancellationToken);
+
+        if (historial is null)
+        {
+            return NotFound(new ApiResponse<object>
+            {
+                Status = StatusCodes.Status404NotFound,
+                Message = "No se encontró la tarea indicada.",
+                Data = null
+            });
+        }
+
+        return Ok(new ApiResponse<List<HistorialTareaResponse>>
+        {
+            Status = StatusCodes.Status200OK,
+            Message = "Historial de la tarea obtenido correctamente.",
+            Data = historial
+        });
+    }
+
     // POST /api/tareas/{idTarea}/anotaciones
     /// <summary>
     /// Agrega una anotación a una tarea.

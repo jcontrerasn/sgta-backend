@@ -8,6 +8,10 @@ public interface ITareaRepository
         int idTarea,
         CancellationToken cancellationToken = default);
 
+    Task<List<TareaHistorial>?> ObtenerHistorialAsync(
+        int idTarea,
+        CancellationToken cancellationToken = default);
+
     Task<TareaAnotacion?> CrearAnotacionAsync(
         TareaAnotacion anotacion,
         CancellationToken cancellationToken = default);

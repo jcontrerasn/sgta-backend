@@ -97,6 +97,70 @@ public class TareaRepository : ITareaRepository
         return tarea;
     }
 
+    public async Task<List<TareaHistorial>?> ObtenerHistorialAsync(
+        int idTarea,
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        await using var command = new SqlCommand(
+            "pr_trackit_HistorialTarea", connection)
+        {
+            CommandType = CommandType.StoredProcedure,
+            CommandTimeout = 30
+        };
+
+        command.Parameters.Add(new SqlParameter(
+            "PidTarea", SqlDbType.Int)
+        {
+            Value = idTarea
+        });
+
+        try
+        {
+            await connection.OpenAsync(cancellationToken);
+
+            await using var reader = await command.ExecuteReaderAsync(
+                cancellationToken);
+
+            var historial = new List<TareaHistorial>();
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                historial.Add(new TareaHistorial
+                {
+                    IdHistorial = reader.GetInt32(
+                        reader.GetOrdinal("IdHistorial")),
+                    IdTarea = reader.GetInt32(
+                        reader.GetOrdinal("IdTarea")),
+                    TipoEvento = LeerTexto(reader, "TipoEvento"),
+                    Usuario = LeerTexto(reader, "Usuario"),
+                    FechaEvento = reader.GetDateTime(
+                        reader.GetOrdinal("FechaEvento")),
+                    Descripcion = LeerTextoNullable(
+                        reader, "Descripcion"),
+                    EstadoAnterior = LeerTextoNullable(
+                        reader, "EstadoAnterior"),
+                    EstadoNuevo = LeerTextoNullable(
+                        reader, "EstadoNuevo"),
+                    IdAnotacion = LeerIntNullable(
+                        reader, "IdAnotacion"),
+                    CampoModificado = LeerTextoNullable(
+                        reader, "CampoModificado"),
+                    ValorAnterior = LeerTextoNullable(
+                        reader, "ValorAnterior"),
+                    ValorNuevo = LeerTextoNullable(
+                        reader, "ValorNuevo")
+                });
+            }
+
+            return historial;
+        }
+        catch (SqlException exception) when (exception.Number == 50027)
+        {
+            return null;
+        }
+    }
+
     public async Task<TareaAnotacion?> CrearAnotacionAsync(
         TareaAnotacion anotacion,
         CancellationToken cancellationToken = default)
@@ -458,6 +522,28 @@ public class TareaRepository : ITareaRepository
         return valor == DBNull.Value
             ? string.Empty
             : Convert.ToString(valor) ?? string.Empty;
+    }
+
+    private static string? LeerTextoNullable(
+        SqlDataReader reader,
+        string columna)
+    {
+        var valor = reader[columna];
+
+        return valor == DBNull.Value
+            ? null
+            : Convert.ToString(valor);
+    }
+
+    private static int? LeerIntNullable(
+        SqlDataReader reader,
+        string columna)
+    {
+        var valor = reader[columna];
+
+        return valor == DBNull.Value
+            ? null
+            : Convert.ToInt32(valor);
     }
 
     private static List<Tarea> OrdenarPorVencimientoCercano(

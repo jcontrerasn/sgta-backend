@@ -31,6 +31,12 @@ BEGIN
         )
             THROW 50022, 'No existe una tarea con el Id indicado.', 1;
 
+        DECLARE @EstadoAnterior VARCHAR(20);
+
+        SELECT @EstadoAnterior = Estado
+        FROM dbo.TRACKIT_Tareas
+        WHERE IdTarea = @PidTarea;
+
         DECLARE @IdAnotacion INT;
 
         INSERT INTO dbo.TRACKIT_TareaAnotaciones
@@ -50,6 +56,33 @@ BEGIN
 
         SET @IdAnotacion = CONVERT(INT, SCOPE_IDENTITY());
 
+        INSERT INTO dbo.TRACKIT_TareaHistorial
+        (
+            IdTarea,
+            TipoEvento,
+            Usuario,
+            Descripcion,
+            EstadoAnterior,
+            EstadoNuevo,
+            IdAnotacion,
+            CampoModificado,
+            ValorAnterior,
+            ValorNuevo
+        )
+        VALUES
+        (
+            @PidTarea,
+            'ANOTACION_AGREGADA',
+            LTRIM(RTRIM(@PusuarioAutor)),
+            LTRIM(RTRIM(@Pcomentario)),
+            @EstadoAnterior,
+            @EstadoAnterior,
+            @IdAnotacion,
+            'Anotacion',
+            NULL,
+            LTRIM(RTRIM(@Pcomentario))
+        );
+
         -- Marca la tarea como cerrada cuando la anotacion es de cierre.
         IF ISNULL(@PesComentarioCierre, 0) = 1
         BEGIN
@@ -58,6 +91,33 @@ BEGIN
                 UsuarioCierre = LTRIM(RTRIM(@PusuarioAutor)),
                 Estado = 'Completada'
             WHERE IdTarea = @PidTarea;
+
+            INSERT INTO dbo.TRACKIT_TareaHistorial
+            (
+                IdTarea,
+                TipoEvento,
+                Usuario,
+                Descripcion,
+                EstadoAnterior,
+                EstadoNuevo,
+                IdAnotacion,
+                CampoModificado,
+                ValorAnterior,
+                ValorNuevo
+            )
+            VALUES
+            (
+                @PidTarea,
+                'COMPLETADA',
+                LTRIM(RTRIM(@PusuarioAutor)),
+                N'Tarea completada mediante anotacion.',
+                @EstadoAnterior,
+                'Completada',
+                @IdAnotacion,
+                'Estado',
+                @EstadoAnterior,
+                'Completada'
+            );
         END;
 
         COMMIT TRANSACTION;

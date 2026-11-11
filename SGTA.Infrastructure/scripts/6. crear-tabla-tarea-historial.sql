@@ -25,3 +25,9 @@ CREATE TABLE dbo.TRACKIT_TareaHistorial
         FOREIGN KEY (IdTarea)
         REFERENCES dbo.TRACKIT_Tareas(IdTarea)
 );
+
+ALTER TABLE dbo.TRACKIT_TareaHistorial
+ADD
+    CampoModificado VARCHAR(50) NULL,
+    ValorAnterior NVARCHAR(MAX) NULL,
+    ValorNuevo NVARCHAR(MAX) NULL;

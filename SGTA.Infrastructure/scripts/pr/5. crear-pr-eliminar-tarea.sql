@@ -18,6 +18,8 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
+        DECLARE @EstadoAnterior VARCHAR(20);
+
         IF NOT EXISTS
         (
             SELECT 1
@@ -27,11 +29,40 @@ BEGIN
         )
             THROW 50025, 'No existe la tarea o el usuario no es su creador.', 1;
 
+        SELECT @EstadoAnterior = Estado
+        FROM dbo.TRACKIT_Tareas
+        WHERE IdTarea = @PidTarea;
+
         UPDATE dbo.TRACKIT_Tareas
         SET Estado = 'Eliminada',
             FechaEliminacion = GETDATE(),
             UsuarioEliminacion = LTRIM(RTRIM(@PusuarioCreador))
         WHERE IdTarea = @PidTarea;
+
+        INSERT INTO dbo.TRACKIT_TareaHistorial
+        (
+            IdTarea,
+            TipoEvento,
+            Usuario,
+            Descripcion,
+            EstadoAnterior,
+            EstadoNuevo,
+            CampoModificado,
+            ValorAnterior,
+            ValorNuevo
+        )
+        VALUES
+        (
+            @PidTarea,
+            'ELIMINADA',
+            LTRIM(RTRIM(@PusuarioCreador)),
+            N'Tarea eliminada logicamente.',
+            @EstadoAnterior,
+            'Eliminada',
+            'Estado',
+            @EstadoAnterior,
+            'Eliminada'
+        );
 
         COMMIT TRANSACTION;
 

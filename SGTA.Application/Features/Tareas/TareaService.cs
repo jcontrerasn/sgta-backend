@@ -63,6 +63,41 @@ public class TareaService
         };
     }
 
+    public async Task<List<HistorialTareaResponse>?> ObtenerHistorialAsync(
+        int idTarea,
+        CancellationToken cancellationToken = default)
+    {
+        if (idTarea <= 0)
+        {
+            throw new ArgumentException(
+                "El Id de la tarea debe ser mayor que cero.");
+        }
+
+        var historial = await _repository.ObtenerHistorialAsync(
+            idTarea, cancellationToken);
+
+        if (historial is null)
+        {
+            return null;
+        }
+
+        return historial.Select(evento => new HistorialTareaResponse
+        {
+            IdHistorial = evento.IdHistorial,
+            IdTarea = evento.IdTarea,
+            TipoEvento = evento.TipoEvento,
+            Usuario = evento.Usuario,
+            FechaEvento = evento.FechaEvento,
+            Descripcion = evento.Descripcion,
+            EstadoAnterior = evento.EstadoAnterior,
+            EstadoNuevo = evento.EstadoNuevo,
+            IdAnotacion = evento.IdAnotacion,
+            CampoModificado = evento.CampoModificado,
+            ValorAnterior = evento.ValorAnterior,
+            ValorNuevo = evento.ValorNuevo
+        }).ToList();
+    }
+
     public async Task<AnotacionTareaResponse?> CrearAnotacionAsync(
         int idTarea,
         CrearAnotacionTareaRequest request,

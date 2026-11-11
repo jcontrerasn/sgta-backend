@@ -77,6 +77,16 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
+        DECLARE @EstadoAnterior VARCHAR(20);
+        DECLARE @UsuarioHistorial VARCHAR(100);
+        DECLARE @TituloAnterior NVARCHAR(120);
+        DECLARE @DescripcionAnterior NVARCHAR(MAX);
+        DECLARE @FechaVencimientoAnterior DATE;
+        DECLARE @InvolucradosAnteriores NVARCHAR(MAX);
+        DECLARE @InvolucradosNuevos NVARCHAR(MAX);
+        DECLARE @TituloNuevo NVARCHAR(120) = LTRIM(RTRIM(@Ptitulo));
+        DECLARE @DescripcionNueva NVARCHAR(MAX) = LTRIM(RTRIM(@Pdescripcion));
+
         IF NOT EXISTS
         (
             SELECT 1
@@ -85,10 +95,46 @@ BEGIN
         )
             THROW 50017, 'No existe una tarea con el Id indicado.', 1;
 
+        SELECT
+            @EstadoAnterior = Estado,
+            @UsuarioHistorial = UsuarioCreador,
+            @TituloAnterior = Titulo,
+            @DescripcionAnterior = Descripcion,
+            @FechaVencimientoAnterior = FechaVencimiento
+        FROM dbo.TRACKIT_Tareas
+        WHERE IdTarea = @PidTarea;
+
+        SELECT @InvolucradosAnteriores = STUFF
+        (
+            (
+                SELECT ';' + TI.Usuario
+                FROM dbo.TRACKIT_TareaInvolucrados AS TI
+                WHERE TI.IdTarea = @PidTarea
+                ORDER BY TI.Usuario
+                FOR XML PATH(''), TYPE
+            ).value('.', 'NVARCHAR(MAX)'),
+            1,
+            1,
+            ''
+        );
+
+        SELECT @InvolucradosNuevos = STUFF
+        (
+            (
+                SELECT ';' + I.Usuario
+                FROM @Involucrados AS I
+                ORDER BY I.Usuario
+                FOR XML PATH(''), TYPE
+            ).value('.', 'NVARCHAR(MAX)'),
+            1,
+            1,
+            ''
+        );
+
         UPDATE dbo.TRACKIT_Tareas
         SET
-            Titulo = LTRIM(RTRIM(@Ptitulo)),
-            Descripcion = LTRIM(RTRIM(@Pdescripcion)),
+            Titulo = @TituloNuevo,
+            Descripcion = @DescripcionNueva,
             FechaVencimiento = @PfechaVencimiento,
             FechaModificacion = GETDATE()
         WHERE IdTarea = @PidTarea;
@@ -106,6 +152,72 @@ BEGIN
             @PidTarea,
             Usuario
         FROM @Involucrados;
+
+        IF ISNULL(@TituloAnterior, N'') <> ISNULL(@TituloNuevo, N'')
+        BEGIN
+            INSERT INTO dbo.TRACKIT_TareaHistorial
+            (
+                IdTarea, TipoEvento, Usuario, Descripcion,
+                EstadoAnterior, EstadoNuevo,
+                CampoModificado, ValorAnterior, ValorNuevo
+            )
+            VALUES
+            (
+                @PidTarea, 'ACTUALIZADA', @UsuarioHistorial,
+                N'Titulo actualizado.', @EstadoAnterior, @EstadoAnterior,
+                'Titulo', @TituloAnterior, @TituloNuevo
+            );
+        END;
+
+        IF ISNULL(@DescripcionAnterior, N'') <> ISNULL(@DescripcionNueva, N'')
+        BEGIN
+            INSERT INTO dbo.TRACKIT_TareaHistorial
+            (
+                IdTarea, TipoEvento, Usuario, Descripcion,
+                EstadoAnterior, EstadoNuevo,
+                CampoModificado, ValorAnterior, ValorNuevo
+            )
+            VALUES
+            (
+                @PidTarea, 'ACTUALIZADA', @UsuarioHistorial,
+                N'Descripcion actualizada.', @EstadoAnterior, @EstadoAnterior,
+                'Descripcion', @DescripcionAnterior, @DescripcionNueva
+            );
+        END;
+
+        IF ISNULL(@FechaVencimientoAnterior, '19000101') <> @PfechaVencimiento
+        BEGIN
+            INSERT INTO dbo.TRACKIT_TareaHistorial
+            (
+                IdTarea, TipoEvento, Usuario, Descripcion,
+                EstadoAnterior, EstadoNuevo,
+                CampoModificado, ValorAnterior, ValorNuevo
+            )
+            VALUES
+            (
+                @PidTarea, 'ACTUALIZADA', @UsuarioHistorial,
+                N'Fecha de vencimiento actualizada.', @EstadoAnterior, @EstadoAnterior,
+                'FechaVencimiento',
+                CONVERT(NVARCHAR(10), @FechaVencimientoAnterior, 23),
+                CONVERT(NVARCHAR(10), @PfechaVencimiento, 23)
+            );
+        END;
+
+        IF ISNULL(@InvolucradosAnteriores, N'') <> ISNULL(@InvolucradosNuevos, N'')
+        BEGIN
+            INSERT INTO dbo.TRACKIT_TareaHistorial
+            (
+                IdTarea, TipoEvento, Usuario, Descripcion,
+                EstadoAnterior, EstadoNuevo,
+                CampoModificado, ValorAnterior, ValorNuevo
+            )
+            VALUES
+            (
+                @PidTarea, 'ACTUALIZADA', @UsuarioHistorial,
+                N'Involucrados actualizados.', @EstadoAnterior, @EstadoAnterior,
+                'Involucrados', @InvolucradosAnteriores, @InvolucradosNuevos
+            );
+        END;
 
         COMMIT TRANSACTION;
 

@@ -108,6 +108,29 @@ BEGIN
             Usuario
         FROM @Involucrados;
 
+        INSERT INTO dbo.TRACKIT_TareaHistorial
+        (
+            IdTarea,
+            TipoEvento,
+            Usuario,
+            Descripcion,
+            EstadoNuevo,
+            CampoModificado,
+            ValorAnterior,
+            ValorNuevo
+        )
+        VALUES
+        (
+            @IdTarea,
+            'CREADA',
+            LTRIM(RTRIM(@PusuarioCreador)),
+            N'Tarea creada.',
+            'Activa',
+            'Estado',
+            NULL,
+            'Activa'
+        );
+
         COMMIT TRANSACTION;
 
         EXEC dbo.pr_trackit_EnviarCorreoTarea
