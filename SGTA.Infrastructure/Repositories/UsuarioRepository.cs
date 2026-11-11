@@ -6,19 +6,19 @@ using SGTA.Domain.Entities;
 
 namespace SGTA.Infrastructure.Repositories;
 
-public class UsuarioExternoRepository : IUsuarioExternoRepository
+public class UsuarioRepository : IUsuarioRepository
 {
     private readonly string _connectionString;
 
-    public UsuarioExternoRepository(IConfiguration configuration)
+    public UsuarioRepository(IConfiguration configuration)
     {
         _connectionString = configuration
-            .GetConnectionString("SgtaConnectionExternal")
+            .GetConnectionString("SgtaConnection")
             ?? throw new InvalidOperationException(
-                "No se configuró la conexión externa SgtaConnectionExternal.");
+                "No se configuró ConnectionStrings:SgtaConnection.");
     }
 
-    public async Task<UsuarioExterno?> BuscarPorCuentaAsync(
+    public async Task<Usuario?> BuscarPorCuentaAsync(
         string cuenta,
         CancellationToken cancellationToken = default)
     {
@@ -46,12 +46,50 @@ public class UsuarioExternoRepository : IUsuarioExternoRepository
             return null;
         }
 
-        return new UsuarioExterno
+        return new Usuario
         {
-            Usuario = LeerTexto(reader, "Usuario"),
+            UsuarioNombre = LeerTexto(reader, "Usuario"),
             NombreCompleto = LeerTexto(reader, "NombreCompleto"),
             Area = LeerTexto(reader, "Area")
         };
+    }
+
+    public async Task<List<Usuario>> BuscarPorFiltroAsync(
+        string filtro,
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        await using var command = new SqlCommand(
+            "pr_sm_ListarUsuarioXFiltro", connection)
+        {
+            CommandType = CommandType.StoredProcedure,
+            CommandTimeout = 30
+        };
+
+        command.Parameters.Add(new SqlParameter(
+            "Pfiltro_c", SqlDbType.VarChar, 50)
+        {
+            Value = filtro
+        });
+
+        await connection.OpenAsync(cancellationToken);
+
+        await using var reader = await command.ExecuteReaderAsync(
+            cancellationToken);
+
+        var usuarios = new List<Usuario>();
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            usuarios.Add(new Usuario
+            {
+                UsuarioNombre = LeerTexto(reader, "Usuario"),
+                NombreCompleto = LeerTexto(reader, "NombreCompleto"),
+                Area = LeerTexto(reader, "Area")
+            });
+        }
+
+        return usuarios;
     }
 
     private static string? LeerTexto(

@@ -1,8 +1,8 @@
 namespace SGTA.Domain.Entities;
 
-public class UsuarioExterno
+public class Usuario
 {
-    public string? Usuario { get; set; }
+    public string? UsuarioNombre { get; set; }
     public string? NombreCompleto { get; set; }
     public string? Area { get; set; }
 }

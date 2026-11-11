@@ -1,6 +1,6 @@
-use SgtaDB
+USE SM_PRUEBA
 
-CREATE TABLE dbo.Tareas (
+CREATE TABLE dbo.TRACKIT_Tareas (
     IdTarea INT IDENTITY(1,1) PRIMARY KEY,
 
     Titulo NVARCHAR(120) NOT NULL,
@@ -12,18 +12,17 @@ CREATE TABLE dbo.Tareas (
     UsuarioCreador VARCHAR(100) NOT NULL,
 
     FechaCreacion DATETIME2(0) NOT NULL
-        DEFAULT CONVERT(
-            DATETIME2(7),
-            SYSUTCDATETIME() AT TIME ZONE 'UTC'
-                AT TIME ZONE 'SA Pacific Standard Time'
-        ),
+        DEFAULT GETDATE(),
 
     FechaModificacion DATETIME2(0) NULL,
 
     FechaCierre DATETIME2(0) NULL,
 
+    UsuarioCierre VARCHAR(100) NULL,
+
     FechaEliminacion DATETIME2(0) NULL,
 
-    IdUsuarioEliminacion INT NULL
+    UsuarioEliminacion VARCHAR(100) NULL,
+
+    Estado VARCHAR(20) NULL
 );
-GO
