@@ -26,8 +26,18 @@ public class UsuarioService
                 "La cuenta es obligatoria.", nameof(cuenta));
         }
 
+        var cuentaValidada = cuenta.Trim();
+
+        var rol = await _usuarioRolRepository.ObtenerNombreRolActivoAsync(
+            cuentaValidada, cancellationToken);
+
+        if (string.IsNullOrWhiteSpace(rol))
+        {
+            return null;
+        }
+
         var usuario = await _repository.BuscarPorCuentaAsync(
-            cuenta.Trim(), cancellationToken);
+            cuentaValidada, cancellationToken);
 
         if (usuario is null)
         {
@@ -35,14 +45,6 @@ public class UsuarioService
         }
 
         if (string.IsNullOrWhiteSpace(usuario.UsuarioNombre))
-        {
-            return null;
-        }
-
-        var rol = await _usuarioRolRepository.ObtenerNombreRolActivoAsync(
-            usuario.UsuarioNombre.Trim(), cancellationToken);
-
-        if (string.IsNullOrWhiteSpace(rol))
         {
             return null;
         }
@@ -70,6 +72,27 @@ public class UsuarioService
             filtro.Trim(), cancellationToken);
 
         return usuarios.Select(usuario => new UsuarioCuentaResponse
+        {
+            Usuario = usuario.UsuarioNombre,
+            NombreCompleto = usuario.NombreCompleto,
+            Area = usuario.Area
+        }).ToList();
+    }
+
+    public async Task<List<PersonalTrackItResponse>> BuscarPersonalTrackItPorFiltroAsync(
+        string filtro,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(filtro))
+        {
+            throw new ArgumentException(
+                "El filtro es obligatorio.", nameof(filtro));
+        }
+
+        var usuarios = await _repository.BuscarPersonalTrackItPorFiltroAsync(
+            filtro.Trim(), cancellationToken);
+
+        return usuarios.Select(usuario => new PersonalTrackItResponse
         {
             Usuario = usuario.UsuarioNombre,
             NombreCompleto = usuario.NombreCompleto,

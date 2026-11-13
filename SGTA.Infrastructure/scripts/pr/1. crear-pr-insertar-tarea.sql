@@ -74,6 +74,21 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM @Involucrados)
         THROW 50007, 'Debe indicar al menos un usuario involucrado.', 1;
 
+    DECLARE @InvolucradosNormalizados NVARCHAR(MAX);
+
+    SELECT @InvolucradosNormalizados = STUFF
+    (
+        (
+            SELECT N';' + CONVERT(NVARCHAR(100), Usuario)
+            FROM @Involucrados
+            ORDER BY Usuario
+            FOR XML PATH(''), TYPE
+        ).value('.', 'NVARCHAR(MAX)'),
+        1,
+        1,
+        N''
+    );
+
     BEGIN TRY
         BEGIN TRANSACTION;
 
@@ -119,17 +134,42 @@ BEGIN
             ValorAnterior,
             ValorNuevo
         )
-        VALUES
-        (
+        SELECT
             @IdTarea,
             'CREADA',
             LTRIM(RTRIM(@PusuarioCreador)),
-            N'Tarea creada.',
+            Datos.DescripcionEvento,
             'Activa',
-            'Estado',
+            Datos.CampoModificado,
             NULL,
-            'Activa'
-        );
+            Datos.ValorNuevo
+        FROM
+        (
+            SELECT
+                CONVERT(VARCHAR(50), 'Titulo') AS CampoModificado,
+                CONVERT(NVARCHAR(MAX), LTRIM(RTRIM(@Ptitulo))) AS ValorNuevo,
+                CONVERT(NVARCHAR(MAX), N'Titulo de la tarea registrado.') AS DescripcionEvento
+            UNION ALL
+            SELECT
+                CONVERT(VARCHAR(50), 'Descripcion'),
+                CONVERT(NVARCHAR(MAX), LTRIM(RTRIM(@Pdescripcion))),
+                CONVERT(NVARCHAR(MAX), N'Descripcion de la tarea registrada.')
+            UNION ALL
+            SELECT
+                CONVERT(VARCHAR(50), 'FechaVencimiento'),
+                CONVERT(NVARCHAR(MAX), CONVERT(NVARCHAR(10), @PfechaVencimiento, 23)),
+                CONVERT(NVARCHAR(MAX), N'Fecha de vencimiento registrada.')
+            UNION ALL
+            SELECT
+                CONVERT(VARCHAR(50), 'Involucrados'),
+                @InvolucradosNormalizados,
+                CONVERT(NVARCHAR(MAX), N'Involucrados de la tarea registrados.')
+            UNION ALL
+            SELECT
+                CONVERT(VARCHAR(50), 'Estado'),
+                CONVERT(NVARCHAR(MAX), 'Activa'),
+                CONVERT(NVARCHAR(MAX), N'Tarea creada.')
+        ) AS Datos;
 
         COMMIT TRANSACTION;
 

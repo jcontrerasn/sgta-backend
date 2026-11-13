@@ -85,4 +85,32 @@ public class UsuariosController : ControllerBase
             Data = usuarios
         });
     }
+
+    /// <summary>
+    /// Lista personal de TrackIT usando el procedimiento almacenado de bÃºsqueda por filtro.
+    /// </summary>
+    /// <param name="request">Filtro enviado al procedimiento almacenado.</param>
+    /// <response code="200">Personal de TrackIT obtenido correctamente.</response>
+    /// <response code="400">El filtro no fue informado correctamente.</response>
+    /// <response code="500">OcurriÃ³ un error al consultar BDSERVER01.</response>
+    [ProducesResponseType(typeof(ApiResponse<List<PersonalTrackItResponse>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+    [HttpPost("personal-trackit/buscar-por-filtro")]
+    public async Task<IActionResult> BuscarPersonalTrackItPorFiltro(
+        [FromBody] BuscarUsuariosPorFiltroRequest request,
+        CancellationToken cancellationToken)
+    {
+        var usuarios = await _usuarioService.BuscarPersonalTrackItPorFiltroAsync(
+            request.Pfiltro_c, cancellationToken);
+
+        return Ok(new ApiResponse<List<PersonalTrackItResponse>>
+        {
+            Status = StatusCodes.Status200OK,
+            Message = usuarios.Count == 0
+                ? "No se encontrÃ³ personal de TrackIT para el filtro indicado."
+                : "Personal de TrackIT obtenido correctamente.",
+            Data = usuarios
+        });
+    }
 }

@@ -11,4 +11,8 @@ public interface IUsuarioRepository
     Task<List<Usuario>> BuscarPorFiltroAsync(
         string filtro,
         CancellationToken cancellationToken = default);
+
+    Task<List<Usuario>> BuscarPersonalTrackItPorFiltroAsync(
+        string filtro,
+        CancellationToken cancellationToken = default);
 }

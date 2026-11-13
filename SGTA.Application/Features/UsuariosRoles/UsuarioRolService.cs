@@ -83,6 +83,16 @@ public class UsuarioRolService
             : MapearRespuesta(usuarioRol);
     }
 
+    public async Task<bool> EliminarAsync(
+        int idUsuarioRol,
+        CancellationToken cancellationToken = default)
+    {
+        ValidarIdUsuarioRol(idUsuarioRol);
+
+        return await _repository.EliminarAsync(
+            idUsuarioRol, cancellationToken);
+    }
+
     public async Task<List<UsuarioRolResponse>> ObtenerTodosAsync(
         CancellationToken cancellationToken = default)
     {

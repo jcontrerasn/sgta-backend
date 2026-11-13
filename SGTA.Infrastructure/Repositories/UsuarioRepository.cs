@@ -92,6 +92,44 @@ public class UsuarioRepository : IUsuarioRepository
         return usuarios;
     }
 
+    public async Task<List<Usuario>> BuscarPersonalTrackItPorFiltroAsync(
+        string filtro,
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        await using var command = new SqlCommand(
+            "pr_trackit_ListarPersonalTrackITXFiltro", connection)
+        {
+            CommandType = CommandType.StoredProcedure,
+            CommandTimeout = 30
+        };
+
+        command.Parameters.Add(new SqlParameter(
+            "Pfiltro_c", SqlDbType.VarChar, 50)
+        {
+            Value = filtro
+        });
+
+        await connection.OpenAsync(cancellationToken);
+
+        await using var reader = await command.ExecuteReaderAsync(
+            cancellationToken);
+
+        var usuarios = new List<Usuario>();
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            usuarios.Add(new Usuario
+            {
+                UsuarioNombre = LeerTexto(reader, "Usuario"),
+                NombreCompleto = LeerTexto(reader, "NombreCompleto"),
+                Area = LeerTexto(reader, "Area")
+            });
+        }
+
+        return usuarios;
+    }
+
     private static string? LeerTexto(
         SqlDataReader reader,
         string columna)

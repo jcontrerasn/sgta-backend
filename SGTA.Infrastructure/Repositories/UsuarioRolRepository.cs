@@ -159,6 +159,26 @@ public class UsuarioRolRepository : IUsuarioRolRepository
         return existente;
     }
 
+    public async Task<bool> EliminarAsync(
+        int idUsuarioRol,
+        CancellationToken cancellationToken = default)
+    {
+        var asignacion = await _context.UsuarioRoles
+            .FirstOrDefaultAsync(
+                registro => registro.IdUsuarioRol == idUsuarioRol,
+                cancellationToken);
+
+        if (asignacion is null)
+        {
+            return false;
+        }
+
+        _context.UsuarioRoles.Remove(asignacion);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
+
     private static bool EsViolacionDeUnicidad(
         DbUpdateException exception)
     {

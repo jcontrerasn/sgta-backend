@@ -134,6 +134,46 @@ public class UsuariosRolesController : ControllerBase
         });
     }
 
+    // DELETE /api/usuario-roles/{idUsuarioRol}
+    /// <summary>
+    /// Elimina una asignaciÃ³n usuario-rol por su identificador.
+    /// </summary>
+    /// <param name="idUsuarioRol">Identificador de la asignaciÃ³n usuario-rol.</param>
+    /// <param name="cancellationToken">Token para cancelar la operaciÃ³n.</param>
+    /// <response code="200">AsignaciÃ³n eliminada correctamente.</response>
+    /// <response code="400">El identificador no es vÃ¡lido.</response>
+    /// <response code="404">No se encontrÃ³ la asignaciÃ³n indicada.</response>
+    /// <response code="500">OcurriÃ³ un error interno.</response>
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+    [HttpDelete("{idUsuarioRol:int}")]
+    public async Task<IActionResult> Eliminar(
+        [FromRoute] int idUsuarioRol,
+        CancellationToken cancellationToken)
+    {
+        var eliminado = await _usuarioRolService.EliminarAsync(
+            idUsuarioRol, cancellationToken);
+
+        if (!eliminado)
+        {
+            return NotFound(new ApiResponse<object>
+            {
+                Status = StatusCodes.Status404NotFound,
+                Message = "No se encontrÃ³ la asignaciÃ³n indicada.",
+                Data = null
+            });
+        }
+
+        return Ok(new ApiResponse<object>
+        {
+            Status = StatusCodes.Status200OK,
+            Message = "Usuario eliminado correctamente.",
+            Data = null
+        });
+    }
+
     /// <summary>
     /// Obtiene todas las relaciones entre usuarios y roles.
     /// </summary>

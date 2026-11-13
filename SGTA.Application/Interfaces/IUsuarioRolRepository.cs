@@ -36,4 +36,8 @@ public interface IUsuarioRolRepository
     Task<UsuarioRol?> CambiarEstadoAsync(
         int idUsuarioRol,
         CancellationToken cancellationToken = default);
+
+    Task<bool> EliminarAsync(
+        int idUsuarioRol,
+        CancellationToken cancellationToken = default);
 }
