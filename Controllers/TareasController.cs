@@ -313,6 +313,35 @@ public class TareasController : ControllerBase
     }
 
     /// <summary>
+    /// Obtiene tareas creadas, asignadas u otras según el flag indicado.
+    /// </summary>
+    /// <param name="request">Flag y usuario que realizan la consulta.</param>
+    /// <param name="cancellationToken">Token para cancelar la operación.</param>
+    /// <response code="200">Tareas obtenidas correctamente.</response>
+    /// <response code="400">El flag o usuario no son válidos.</response>
+    /// <response code="500">Ocurrió un error al consultar las tareas.</response>
+    [ProducesResponseType(typeof(ApiResponse<List<TareaResponse>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+    [HttpPost("listar-por-flag")]
+    public async Task<IActionResult> ObtenerPorFlag(
+        [FromBody] ListarTareasFlagRequest request,
+        CancellationToken cancellationToken)
+    {
+        var tareas = await _tareaService.ObtenerPorFlagAsync(
+            request, cancellationToken);
+
+        return Ok(new ApiResponse<List<TareaResponse>>
+        {
+            Status = StatusCodes.Status200OK,
+            Message = tareas.Count == 0
+                ? "No se encontraron tareas para el filtro indicado."
+                : "Tareas obtenidas correctamente.",
+            Data = tareas
+        });
+    }
+
+    /// <summary>
     /// Registra una tarea y sus usuarios involucrados en una sola transacción.
     /// Las anotaciones no se insertan durante este proceso.
     /// </summary>

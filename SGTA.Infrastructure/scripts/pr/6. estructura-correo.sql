@@ -44,16 +44,16 @@ SELECT @copia = STUFF
 );
 
 SELECT TOP (1)
-    @titulo = ISNULL(TT.Titulo, N''),
+    @titulo = ISNULL(TT.Titulo, ''),
     @fechaVencimiento = ISNULL(CONVERT(VARCHAR(10), TT.FechaVencimiento, 23), ''),
-    @descripcion = ISNULL(TT.Descripcion, N''),
+    @descripcion = ISNULL(TT.Descripcion, ''),
     @nombreCreador = ISNULL(TU.NombreCompleto, '')
 FROM dbo.TRACKIT_Tareas TT WITH (NOLOCK)
 LEFT JOIN dbo.TS_USUARIO TU WITH (NOLOCK)
     ON TT.UsuarioCreador = TU.Usuario
 WHERE TT.IdTarea = @idTarea;
 
-SET @asunto = N'Tarea: ' + ISNULL(@titulo, N'');
+SET @asunto = 'Tarea: ' + ISNULL(@titulo, '');
 
 SELECT @anotaciones =
 (
@@ -67,7 +67,7 @@ SELECT @anotaciones =
         '</tr>' +
         '<tr>' +
         '<td style="text-align: left;"> Comentario: <strong>' +
-            ISNULL(CONVERT(NVARCHAR(MAX), TA.Comentario), N'') +
+            ISNULL(CONVERT(NVARCHAR(MAX), TA.Comentario), '') +
             '</strong></td>' +
         '</tr>' +
         '<tr>' +
@@ -84,29 +84,29 @@ SELECT @anotaciones =
 
 SET @anotaciones = ISNULL
 (
-    NULLIF(@anotaciones, N''),
-    N'<tr><td style="text-align: left;">No hay anotaciones registradas.</td></tr>'
+    NULLIF(@anotaciones, ''),
+    '<tr><td style="text-align: left;">No hay anotaciones registradas.</td></tr>'
 );
 
-SET @tableHTML = N'<table class="tabla" width="100%">' +
-    N'<tbody>' +
-    N'<tr><td style="text-align: left;">Estimado/a Sr. /Sra. <strong>' +
-        ISNULL(@nombreCreador, '') + N'</strong></td></tr>' +
-    N'<tr><td><br /></td></tr>' +
-    N'<tr><td style="text-align: left;">Se notifica que quedan <strong>5 meses</strong> para el vencimiento de la siguiente tarea:</td></tr>' +
-    N'<tr><td style="text-align: left;">Titulo de la tarea: <strong>' +
-        ISNULL(@titulo, N'') + N'</strong></td></tr>' +
-    N'<tr><td style="text-align: left;">Fecha de vencimiento: <strong>' +
-        ISNULL(@fechaVencimiento, '') + N'</strong></td></tr>' +
-    N'<tr><td style="text-align: left;">Descripcion: <strong>' +
-        ISNULL(@descripcion, N'') + N'</strong></td></tr>' +
-    N'<tr><td><br /></td></tr>' +
-    N'<tr><td style="text-align: left;">Anotaciones:</td></tr>' +
+SET @tableHTML = '<table class="tabla" width="100%">' +
+    '<tbody>' +
+    '<tr><td style="text-align: left;">Estimado/a Sr. /Sra. <strong>' +
+        ISNULL(@nombreCreador, '') + '</strong></td></tr>' +
+    '<tr><td><br /></td></tr>' +
+    '<tr><td style="text-align: left;">Se notifica que quedan <strong>5 meses</strong> para el vencimiento de la siguiente tarea:</td></tr>' +
+    '<tr><td style="text-align: left;">Titulo de la tarea: <strong>' +
+        ISNULL(@titulo, '') + '</strong></td></tr>' +
+    '<tr><td style="text-align: left;">Fecha de vencimiento: <strong>' +
+        ISNULL(@fechaVencimiento, '') + '</strong></td></tr>' +
+    '<tr><td style="text-align: left;">Descripcion: <strong>' +
+        ISNULL(@descripcion, '') + '</strong></td></tr>' +
+    '<tr><td><br /></td></tr>' +
+    '<tr><td style="text-align: left;">Anotaciones:</td></tr>' +
     @anotaciones +
-    N'<tr><td><br /></td></tr>' +
-    N'<tr><td style="text-align: left;">Atte.</td></tr>' +
-    N'<tr><td style="text-align: left;">Gestion y control de servicios TI (TrackIT)</td></tr>' +
-    N'</tbody></table>';
+    '<tr><td><br /></td></tr>' +
+    '<tr><td style="text-align: left;">Atte.</td></tr>' +
+    '<tr><td style="text-align: left;">Gestion y control de servicios TI (TrackIT)</td></tr>' +
+    '</tbody></table>';
 
 INSERT INTO dbo.TRACKIT_Alertas
 (
@@ -121,8 +121,8 @@ VALUES
 (
     @idTarea,
     'TAREA',
-    ISNULL(@titulo, N''),
-    ISNULL(@asunto, N''),
+    ISNULL(@titulo, ''),
+    ISNULL(@asunto, ''),
     ISNULL(@usuarioCreador, ''),
     'PENDIENTE'
 );
@@ -133,7 +133,7 @@ IF COALESCE(@para, '') = ''
 BEGIN
     UPDATE dbo.TRACKIT_Alertas
     SET EstadoEnvio = 'ERROR',
-        ErrorDetalle = N'La tarea no tiene un correo de destinatario principal.'
+        ErrorDetalle = 'La tarea no tiene un correo de destinatario principal.'
     WHERE IdAlerta = @IdAlerta;
 END
 ELSE
@@ -205,6 +205,5 @@ BEGIN
         SET EstadoEnvio = 'ERROR',
             ErrorDetalle = ERROR_MESSAGE()
         WHERE IdAlerta = @IdAlerta;
-
     END CATCH;
 END;

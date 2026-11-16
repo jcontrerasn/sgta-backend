@@ -40,6 +40,11 @@ public interface ITareaRepository
         string rolUsuario,
         CancellationToken cancellationToken = default);
 
+    Task<List<Tarea>> ObtenerPorFlagAsync(
+        int flag,
+        string usuario,
+        CancellationToken cancellationToken = default);
+
     Task<Tarea> CrearConInvolucradosAsync(
         Tarea tarea,
         IReadOnlyCollection<string> usuariosInvolucrados,

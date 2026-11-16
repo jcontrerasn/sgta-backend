@@ -343,6 +343,56 @@ public class TareaService
         }).ToList();
     }
 
+    public async Task<List<TareaResponse>> ObtenerPorFlagAsync(
+        ListarTareasFlagRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request.Flag < 1 || request.Flag > 3)
+        {
+            throw new ArgumentException(
+                "El flag debe ser 1, 2 o 3.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Usuario))
+        {
+            throw new ArgumentException(
+                "El usuario es obligatorio.");
+        }
+
+        var usuario = request.Usuario.Trim();
+
+        if (request.Flag == 3)
+        {
+            var rol = await _usuarioRolRepository.ObtenerNombreRolActivoAsync(
+                usuario, cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(rol))
+            {
+                throw new ArgumentException(
+                    "El usuario no está registrado o no tiene un rol activo en el sistema.");
+            }
+        }
+
+        var tareas = await _repository.ObtenerPorFlagAsync(
+            request.Flag, usuario, cancellationToken);
+
+        return tareas.Select(tarea => new TareaResponse
+        {
+            IdTarea = tarea.IdTarea,
+            Titulo = tarea.Titulo,
+            Descripcion = tarea.Descripcion,
+            FechaVencimiento = tarea.FechaVencimiento,
+            UsuarioCreador = tarea.UsuarioCreador,
+            RolUsuarioCreador = tarea.RolUsuarioCreador,
+            Estado = tarea.Estado,
+            FechaCreacion = tarea.FechaCreacion,
+            UsuariosInvolucrados = tarea.Involucrados
+                .OrderBy(involucrado => involucrado.IdTareaInvolucrado)
+                .Select(involucrado => involucrado.Usuario)
+                .ToList()
+        }).ToList();
+    }
+
     public async Task<TareaResponse> CrearAsync(
         CrearTareaRequest request,
         CancellationToken cancellationToken = default)
