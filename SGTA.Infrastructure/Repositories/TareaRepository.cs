@@ -426,6 +426,85 @@ public class TareaRepository : ITareaRepository
         return OrdenarPorVencimientoCercano(resultado);
     }
 
+    public async Task<List<Tarea>> ObtenerPorFlagAsync(
+        int flag,
+        string usuario,
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        await using var command = new SqlCommand(
+            "pr_trackit_ListarTareasFlag", connection)
+        {
+            CommandType = CommandType.StoredProcedure,
+            CommandTimeout = 30
+        };
+
+        command.Parameters.Add(new SqlParameter(
+            "Pflag", SqlDbType.Int)
+        {
+            Value = flag
+        });
+
+        command.Parameters.Add(new SqlParameter(
+            "Pusuario", SqlDbType.VarChar, 100)
+        {
+            Value = usuario
+        });
+
+        await connection.OpenAsync(cancellationToken);
+
+        await using var reader = await command.ExecuteReaderAsync(
+            cancellationToken);
+
+        var tareas = new List<Tarea>();
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            tareas.Add(new Tarea
+            {
+                IdTarea = reader.GetInt32(reader.GetOrdinal("IdTarea")),
+                Titulo = LeerTexto(reader, "Titulo"),
+                Descripcion = LeerTexto(reader, "Descripcion"),
+                FechaVencimiento = DateOnly.FromDateTime(
+                    reader.GetDateTime(reader.GetOrdinal("FechaVencimiento"))),
+                UsuarioCreador = LeerTexto(reader, "UsuarioCreador"),
+                RolUsuarioCreador = LeerTexto(reader, "RolUsuarioCreador"),
+                Estado = LeerTexto(reader, "Estado"),
+                FechaCreacion = reader.GetDateTime(
+                    reader.GetOrdinal("FechaCreacion"))
+            });
+        }
+
+        if (await reader.NextResultAsync(cancellationToken))
+        {
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var idTarea = reader.GetInt32(
+                    reader.GetOrdinal("IdTarea"));
+
+                var tarea = tareas.FirstOrDefault(
+                    item => item.IdTarea == idTarea);
+
+                if (tarea is null)
+                {
+                    continue;
+                }
+
+                tarea.Involucrados.Add(new TareaInvolucrado
+                {
+                    IdTareaInvolucrado = reader.GetInt32(
+                        reader.GetOrdinal("IdTareaInvolucrado")),
+                    IdTarea = idTarea,
+                    Usuario = LeerTexto(reader, "Usuario"),
+                    FechaAsignacion = reader.GetDateTime(
+                        reader.GetOrdinal("FechaAsignacion"))
+                });
+            }
+        }
+
+        return tareas;
+    }
+
     public async Task<Tarea> CrearConInvolucradosAsync(
         Tarea tarea,
         IReadOnlyCollection<string> usuariosInvolucrados,
