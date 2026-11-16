@@ -427,7 +427,7 @@ public class TareaRepository : ITareaRepository
     }
 
     public async Task<List<Tarea>> ObtenerPorFlagAsync(
-        int flag,
+        string flag,
         string usuario,
         CancellationToken cancellationToken = default)
     {
@@ -440,7 +440,7 @@ public class TareaRepository : ITareaRepository
         };
 
         command.Parameters.Add(new SqlParameter(
-            "Pflag", SqlDbType.Int)
+            "Pflag", SqlDbType.VarChar, 20)
         {
             Value = flag
         });

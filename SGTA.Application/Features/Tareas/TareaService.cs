@@ -347,10 +347,19 @@ public class TareaService
         ListarTareasFlagRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request.Flag < 1 || request.Flag > 3)
+        if (string.IsNullOrWhiteSpace(request.Flag))
         {
             throw new ArgumentException(
-                "El flag debe ser 1, 2 o 3.");
+                "El flag es obligatorio.");
+        }
+
+        var flagTexto = request.Flag.Trim();
+        var flag = flagTexto.ToLowerInvariant();
+
+        if (flag is not ("creadas" or "asignadas" or "otras"))
+        {
+            throw new ArgumentException(
+                "El flag debe ser 'creadas', 'asignadas' u 'otras'.");
         }
 
         if (string.IsNullOrWhiteSpace(request.Usuario))
@@ -361,7 +370,7 @@ public class TareaService
 
         var usuario = request.Usuario.Trim();
 
-        if (request.Flag == 3)
+        if (flag == "otras")
         {
             var rol = await _usuarioRolRepository.ObtenerNombreRolActivoAsync(
                 usuario, cancellationToken);
@@ -374,7 +383,7 @@ public class TareaService
         }
 
         var tareas = await _repository.ObtenerPorFlagAsync(
-            request.Flag, usuario, cancellationToken);
+            flag, usuario, cancellationToken);
 
         return tareas.Select(tarea => new TareaResponse
         {

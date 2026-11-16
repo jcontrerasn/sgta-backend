@@ -315,7 +315,7 @@ public class TareasController : ControllerBase
     /// <summary>
     /// Obtiene tareas creadas, asignadas u otras según el flag indicado.
     /// </summary>
-    /// <param name="request">Flag y usuario que realizan la consulta.</param>
+    /// <param name="request">Flag (creadas, asignadas u otras) y usuario que realizan la consulta.</param>
     /// <param name="cancellationToken">Token para cancelar la operación.</param>
     /// <response code="200">Tareas obtenidas correctamente.</response>
     /// <response code="400">El flag o usuario no son válidos.</response>

@@ -41,7 +41,7 @@ public interface ITareaRepository
         CancellationToken cancellationToken = default);
 
     Task<List<Tarea>> ObtenerPorFlagAsync(
-        int flag,
+        string flag,
         string usuario,
         CancellationToken cancellationToken = default);
 

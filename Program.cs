@@ -7,6 +7,7 @@ using SGTA.Application.Features.Roles;
 using SGTA.Application.Features.Tareas;
 using SGTA.Application.Features.UsuariosRoles;
 using SGTA.Application.Features.Usuarios;
+using SGTA.Application.Features.Alertas;
 using SGTA.Application.Interfaces;
 using SGTA.Infrastructure.Repositories;
 using sgta_backend.Common.Responses;
@@ -37,6 +38,8 @@ builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<IUsuarioRolRepository, UsuarioRolRepository>();
 builder.Services.AddScoped<UsuarioRolService>();
+builder.Services.AddScoped<IAlertaRepository, AlertaRepository>();
+builder.Services.AddScoped<AlertaService>();
 
 // Servicios del backend
 builder.Services.AddControllers();
