@@ -120,7 +120,7 @@ INSERT INTO dbo.TRACKIT_Alertas
 VALUES
 (
     @idTarea,
-    'TAREA',
+    'Recordatiorio de vencimiento',
     ISNULL(@titulo, ''),
     ISNULL(@asunto, ''),
     ISNULL(@usuarioCreador, ''),
@@ -186,12 +186,12 @@ BEGIN
             @body_format = 'HTML';
 
         UPDATE dbo.TRACKIT_Alertas
-        SET EstadoEnvio = 'ENCOLADA',
+        SET EstadoEnvio = 'ENVIADO',
             FechaEncolada = GETDATE()
         WHERE IdAlerta = @IdAlerta;
 
         UPDATE dbo.TRACKIT_AlertaDestinatarios
-        SET EstadoEnvio = 'ENCOLADA',
+        SET EstadoEnvio = 'ENVIADO',
             FechaEncolada = GETDATE()
         WHERE IdAlerta = @IdAlerta;
     END TRY

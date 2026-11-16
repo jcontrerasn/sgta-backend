@@ -14,16 +14,19 @@ END;
 GO
 
 ALTER PROCEDURE dbo.pr_trackit_ListarTareasFlag
-    @Pflag INT,
+    @Pflag VARCHAR(20),
     @Pusuario VARCHAR(100)
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF @Pflag IS NULL OR @Pflag NOT IN (1, 2, 3)
+    SET @Pflag = LOWER(LTRIM(RTRIM(@Pflag)));
+
+    IF NULLIF(@Pflag, '') IS NULL
+        OR @Pflag NOT IN ('creadas', 'asignadas', 'otras')
     BEGIN
         RAISERROR(
-            'El flag debe ser 1, 2 o 3.',
+            'El flag debe ser creadas, asignadas u otras.',
             16,
             1);
         RETURN;
@@ -42,7 +45,7 @@ BEGIN
 
     DECLARE @RolUsuario VARCHAR(100);
 
-    IF @Pflag = 3
+    IF @Pflag = 'otras'
     BEGIN
         SELECT TOP (1)
             @RolUsuario = R.Nombre
@@ -68,17 +71,17 @@ BEGIN
         IdTarea INT NOT NULL PRIMARY KEY
     );
 
-    IF @Pflag = 1
+    IF @Pflag = 'creadas'
     BEGIN
-        -- Flag 1: tareas creadas por el usuario.
+        -- Flag creadas: tareas creadas por el usuario.
         INSERT INTO @TareasSeleccionadas (IdTarea)
         SELECT T.IdTarea
         FROM dbo.TRACKIT_Tareas T
         WHERE T.UsuarioCreador = @Pusuario;
     END
-    ELSE IF @Pflag = 2
+    ELSE IF @Pflag = 'asignadas'
     BEGIN
-        -- Flag 2: tareas donde el usuario esta involucrado.
+        -- Flag asignadas: tareas donde el usuario esta involucrado.
         INSERT INTO @TareasSeleccionadas (IdTarea)
         SELECT T.IdTarea
         FROM dbo.TRACKIT_Tareas T
@@ -92,7 +95,7 @@ BEGIN
     END
     ELSE
     BEGIN
-        -- Flag 3: tareas donde el usuario no es creador ni involucrado.
+        -- Flag otras: tareas donde el usuario no es creador ni involucrado.
         INSERT INTO @TareasSeleccionadas (IdTarea)
         SELECT T.IdTarea
         FROM dbo.TRACKIT_Tareas T
