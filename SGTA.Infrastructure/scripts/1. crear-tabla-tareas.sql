@@ -3,6 +3,8 @@ USE SM_PRUEBA
 CREATE TABLE dbo.TRACKIT_Tareas (
     IdTarea INT IDENTITY(1,1) PRIMARY KEY,
 
+    CodigoTarea VARCHAR(20) NULL,
+
     Titulo NVARCHAR(120) NOT NULL,
 
     Descripcion NVARCHAR(MAX) NOT NULL,
@@ -26,3 +28,7 @@ CREATE TABLE dbo.TRACKIT_Tareas (
 
     Estado VARCHAR(20) NULL
 );
+
+CREATE UNIQUE INDEX UX_TRACKIT_Tareas_CodigoTarea
+    ON dbo.TRACKIT_Tareas (CodigoTarea)
+    WHERE CodigoTarea IS NOT NULL;

@@ -1,19 +1,14 @@
-USE SM_PRUEBA;
+USE [SM_PRUEBA]
+GO
+/****** Object:  StoredProcedure [dbo].[pr_trackit_ListarTareasFlag]    Script Date: 20/11/2026 10:01:07 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
 GO
 
-IF OBJECT_ID(N'dbo.pr_trackit_ListarTareasFlag', N'P') IS NULL
-BEGIN
-    EXEC(N'
-        CREATE PROCEDURE dbo.pr_trackit_ListarTareasFlag
-        AS
-        BEGIN
-            SET NOCOUNT ON;
-        END
-    ');
-END;
-GO
+--exec [pr_trackit_ListarTareasFlag] 'otras', 'lrivera'
 
-ALTER PROCEDURE dbo.pr_trackit_ListarTareasFlag
+ALTER PROCEDURE [dbo].[pr_trackit_ListarTareasFlag]
     @Pflag VARCHAR(20),
     @Pusuario VARCHAR(100)
 AS
@@ -131,26 +126,45 @@ BEGIN
     -- Primer resultado: tareas seleccionadas.
     SELECT
         T.IdTarea,
+		T.CodigoTarea,
         T.Titulo,
         T.Descripcion,
         T.FechaVencimiento,
-        T.UsuarioCreador,
+        TU.NombreCompleto AS UsuarioCreador,
         RC.NombreRol AS RolUsuarioCreador,
         T.Estado,
         T.FechaCreacion
     FROM dbo.TRACKIT_Tareas T
     INNER JOIN @TareasSeleccionadas TS
         ON TS.IdTarea = T.IdTarea
+	INNER JOIN TS_USUARIO TU
+		ON T.UsuarioCreador = TU.Usuario
     OUTER APPLY
     (
         SELECT TOP (1)
-            R.Nombre AS NombreRol
-        FROM dbo.TRACKIT_UsuarioRoles UR
-        INNER JOIN dbo.TRACKIT_Roles R
-            ON R.IdRol = UR.IdRol
-        WHERE UR.Usuario = T.UsuarioCreador
-            AND UR.Activo = 1
-            AND R.Activo = 1
+            PA.ValorTexto AS NombreRol
+        FROM dbo.SM_PUESTO PU WITH (NOLOCK)
+        INNER JOIN dbo.SM_PARAMETRO PA WITH (NOLOCK)
+            ON PA.Id = PU.IdPuesto
+        WHERE PU.Estado = 1
+            AND PU.Usuario = T.UsuarioCreador
+            AND PA.ValorTexto IN
+            (
+                'TecnicoSoporte',
+                'ResponsableHardware',
+                'ResponsableSoftware',
+                'IngenieroRedes',
+                'Jefatura GTIC'
+            )
+        ORDER BY CASE PA.ValorTexto
+            WHEN 'Jefatura GTIC' THEN 1
+            WHEN 'IngenieroRedes' THEN 2
+            WHEN 'ResponsableSoftware' THEN 3
+            WHEN 'ResponsableHardware' THEN 4
+            WHEN 'TecnicoSoporte' THEN 5
+            ELSE 6
+        END,
+        PU.Id
     ) RC
     ORDER BY
         T.FechaVencimiento ASC,
@@ -161,13 +175,14 @@ BEGIN
     SELECT
         TI.IdTareaInvolucrado,
         TI.IdTarea,
-        TI.Usuario,
+        TU.NombreCompleto AS Usuario,
         TI.FechaAsignacion
     FROM dbo.TRACKIT_TareaInvolucrados TI
     INNER JOIN @TareasSeleccionadas TS
         ON TS.IdTarea = TI.IdTarea
+	INNER JOIN TS_USUARIO TU
+		ON TI.Usuario = TU.Usuario
     ORDER BY
         TI.IdTarea,
         TI.IdTareaInvolucrado;
 END;
-GO

@@ -1,7 +1,12 @@
-USE SM_PRUEBA;
+USE [SM_PRUEBA]
+GO
+/****** Object:  StoredProcedure [dbo].[pr_trackit_InsertarNuevaTarea]    Script Date: 19/11/2026 11:40:01 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE OR ALTER PROCEDURE dbo.pr_trackit_InsertarNuevaTarea
+ALTER PROCEDURE [dbo].[pr_trackit_InsertarNuevaTarea]
     @Ptitulo NVARCHAR(120),
     @Pdescripcion NVARCHAR(MAX),
     @PfechaVencimiento DATE,
@@ -93,9 +98,21 @@ BEGIN
         BEGIN TRANSACTION;
 
         DECLARE @IdTarea INT;
+        DECLARE @NumeroTarea INT;
+        DECLARE @CodigoTarea VARCHAR(20);
+
+        SELECT @NumeroTarea = ISNULL
+        (
+            MAX(TRY_CONVERT(INT, REPLACE(CodigoTarea, 'TSK-', ''))),
+            0
+        ) + 1
+        FROM dbo.TRACKIT_Tareas WITH (TABLOCKX, HOLDLOCK);
+
+        SET @CodigoTarea = CONCAT('TSK-', @NumeroTarea);
 
         INSERT INTO dbo.TRACKIT_Tareas
         (
+            CodigoTarea,
             Titulo,
             Descripcion,
             FechaVencimiento,
@@ -104,6 +121,7 @@ BEGIN
         )
         VALUES
         (
+            @CodigoTarea,
             LTRIM(RTRIM(@Ptitulo)),
             LTRIM(RTRIM(@Pdescripcion)),
             @PfechaVencimiento,
@@ -168,17 +186,18 @@ BEGIN
             SELECT
                 CONVERT(VARCHAR(50), 'Estado'),
                 CONVERT(NVARCHAR(MAX), 'Activa'),
-                CONVERT(NVARCHAR(MAX), N'Tarea creada.')
+                CONVERT(NVARCHAR(MAX), N'Estado.')
         ) AS Datos;
 
         COMMIT TRANSACTION;
 
-        EXEC dbo.pr_trackit_EnviarCorreoTarea
-            @PidTarea = @IdTarea;
+        --EXEC dbo.pr_trackit_EnviarCorreoTarea
+        --    @PidTarea = @IdTarea;
 
         -- Primer resultado: tarea creada.
         SELECT
             IdTarea,
+            CodigoTarea,
             Titulo,
             Descripcion,
             FechaVencimiento,
@@ -205,4 +224,3 @@ BEGIN
         THROW;
     END CATCH;
 END;
-GO
